@@ -1,4 +1,4 @@
-import { app, BrowserWindow } from 'electron' // eslint-disable-line
+import { app, BrowserWindow, Tray } from 'electron' // eslint-disable-line
 
 /**
  * Set `__static` path to static files in production
@@ -9,20 +9,48 @@ if (process.env.NODE_ENV !== 'development') {
 }
 
 let mainWindow;
+let tray;
+let settingWindow;
+
+// 开发模式时使用webpack-dev-server的URL
 const winURL = process.env.NODE_ENV === 'development'
   ? 'http://localhost:9080'
   : `file://${__dirname}/index.html`;
+
+const toggleWindow = () => {
+  if (window.isVisible()) {
+    window.hide();
+  } else {
+    window.show();
+  }
+};
+
+const createSettingWindow = () => {
+
+};
 
 function createWindow() {
   /**
    * Initial window options
    */
-  mainWindow = new BrowserWindow({
-    height: 563,
-    useContentSize: true,
+  const options = {
     width: 1000,
+    height: 563,
+    title: 'water-drop',
+    useContentSize: true,
+    show: false,
+  };
+
+  if (process.platform === 'win32') {
+    options.show = true;
+    options.frame = false;
+  }
+
+  mainWindow = new BrowserWindow({
+
   });
 
+  // 加载的窗口的URL
   mainWindow.loadURL(winURL);
 
   mainWindow.on('closed', () => {
@@ -30,9 +58,35 @@ function createWindow() {
   });
 }
 
+function createTray() {
+  const menubar = process.platform === 'darwin' ? `${__static}/menubar.png` : `${__static}/menubar-nodarwin.png`;
+  tray = new Tray(menubar);
+  const contextMenu = {};
+  tray.on('right-click', () => {
+    window.hide();
+    tray.popUpContextMenu(contextMenu);
+  });
+  tray.on('click', () => {
+    if (process.platform === 'darwin') {
+      toggleWindow();
+    } else {
+      window.hide();
+      if (settingWindow === null) {
+        createSettingWindow();
+        settingWindow.show();
+      } else {
+        settingWindow.show();
+        settingWindow.focus();
+      }
+    }
+  });
+}
+
+// 创建窗口
 app.on('ready', createWindow);
 
 app.on('window-all-closed', () => {
+  // 如果当前操作系统不为macOS时
   if (process.platform !== 'darwin') {
     app.quit();
   }
