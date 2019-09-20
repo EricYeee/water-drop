@@ -1,4 +1,4 @@
-import { app, BrowserWindow, Tray } from 'electron' // eslint-disable-line
+import { app, BrowserWindow, Tray, Menu } from 'electron' // eslint-disable-line
 
 /**
  * Set `__static` path to static files in production
@@ -11,6 +11,7 @@ if (process.env.NODE_ENV !== 'development') {
 let mainWindow;
 let tray;
 let settingWindow;
+let menu;
 
 // 开发模式时使用webpack-dev-server的URL
 const winURL = process.env.NODE_ENV === 'development'
@@ -29,7 +30,7 @@ const createSettingWindow = () => {
 
 };
 
-function createWindow() {
+const createWindow = () => {
   /**
    * Initial window options
    */
@@ -56,12 +57,12 @@ function createWindow() {
   mainWindow.on('closed', () => {
     mainWindow = null;
   });
-}
+};
 
-function createTray() {
+const createTray = () => {
   const menubar = process.platform === 'darwin' ? `${__static}/menubar.png` : `${__static}/menubar-nodarwin.png`;
   tray = new Tray(menubar);
-  const contextMenu = {};
+  const contextMenu = Menu.buildFormTemplate([]);
   tray.on('right-click', () => {
     window.hide();
     tray.popUpContextMenu(contextMenu);
@@ -80,7 +81,50 @@ function createTray() {
       }
     }
   });
-}
+};
+
+const createMenu = () => {
+  if (process.env.NODE_ENV !== 'development') {
+    const template = [{
+      lable: 'Edit',
+      submenu: [{
+        lable: 'Undo',
+        accelerator: 'CmdOrCtrl+Z',
+        selector: 'undo:',
+      }, {
+        lable: 'Redo',
+        accelerator: 'Shift+CmdOrCtrl+Z',
+        selector: 'redo:',
+      }, {
+        type: 'separator',
+      }, {
+        lable: 'Cut',
+        accelerator: 'CmdOrCtrl+X',
+        selector: 'cut:',
+      }, {
+        lable: 'Copy',
+        accelerator: 'CmdOrCtrl+C',
+        selector: 'copy:',
+      }, {
+        lable: 'Paste',
+        accelerator: 'CmdOrCtrl+V',
+        selector: 'paste:',
+      }, {
+        lable: 'Select All',
+        accelerator: 'CmdOrCtrl+A',
+        selector: 'selectAll:',
+      }, {
+        lable: 'Quit',
+        accelerator: 'CmdOrCtrl+Q',
+        click() {
+          app.quit();
+        },
+      }],
+    }];
+    menu = Menu.buildFromTemplate(template);
+    Menu.setApplicationMenu(menu);
+  }
+};
 
 // 创建窗口
 app.on('ready', createWindow);
