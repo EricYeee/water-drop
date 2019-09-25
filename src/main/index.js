@@ -10,25 +10,12 @@ if (process.env.NODE_ENV !== 'development') {
 
 let mainWindow;
 let tray;
-let settingWindow;
 let menu;
 
 // 开发模式时使用webpack-dev-server的URL
 const winURL = process.env.NODE_ENV === 'development'
   ? 'http://localhost:9080'
   : `file://${__dirname}/index.html`;
-
-const toggleWindow = () => {
-  if (window.isVisible()) {
-    window.hide();
-  } else {
-    window.show();
-  }
-};
-
-const createSettingWindow = () => {
-
-};
 
 const createWindow = () => {
   /**
@@ -62,24 +49,13 @@ const createWindow = () => {
 const createTray = () => {
   const menubar = process.platform === 'darwin' ? `${__static}/menubar.png` : `${__static}/menubar-nodarwin.png`;
   tray = new Tray(menubar);
-  const contextMenu = Menu.buildFormTemplate([]);
+  // const contextMenu = Menu.buildFormTemplate([]);
+  const contextMenu = {};
   tray.on('right-click', () => {
-    window.hide();
     tray.popUpContextMenu(contextMenu);
   });
   tray.on('click', () => {
-    if (process.platform === 'darwin') {
-      toggleWindow();
-    } else {
-      window.hide();
-      if (settingWindow === null) {
-        createSettingWindow();
-        settingWindow.show();
-      } else {
-        settingWindow.show();
-        settingWindow.focus();
-      }
-    }
+
   });
 };
 
@@ -127,7 +103,11 @@ const createMenu = () => {
 };
 
 // 创建窗口
-app.on('ready', createWindow);
+app.on('ready', () => {
+  createWindow();
+  createTray();
+  createMenu();
+});
 
 app.on('window-all-closed', () => {
   // 如果当前操作系统不为macOS时

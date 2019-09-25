@@ -20,7 +20,7 @@
   },
   "build": {
     "productName": "water-drop",
-    "appId": "com.example.yourapp",
+    "appId": "com.drop.water",
     "directories": {
       "output": "build"
     },
